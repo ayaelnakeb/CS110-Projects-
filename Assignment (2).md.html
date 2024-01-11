@@ -1,0 +1,1094 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment (2).md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="final-project-decoding-the-relationships-between-genes">Final Project: Decoding the relationships between Genes</h1>
+<h3 id="python-implementation-that-gives-all-the-lcss-for-two-stings-and-their-corresponding-lengths">1. Python Implementation that gives all the LCSs for two stings and their corresponding lengths:</h3>
+<p>You can find the implementation of the code in the Appendix B section. The code returns all of the Longest Common Subsequences (LCSs) for any two given arbitrary strings as well as the LCSs corresponding length. Then, I added several test cases to evaluate the ability of my code with different edge cases like when the string is empty or multiple LCS with the same length or no LCS.</p>
+<p>I used the bottom-up dynamic programming approach. It builds a lookup table that is a 2D list that has the lengths of LCSs in substring between the two arbitrary strings (X and Y). Then, the table is filled using a bottom-up approach. It calculates the length of LCS for each pair of substrings of X and Y.</p>
+<h3 id="matrix-of-lcs-length">2. Matrix of LCS length:</h3>
+<p>I created an empty 2D numpy array to store the length of LCSs for each pair of strings. The dimensions are set to be 7 rows x 7 columns since we have 7 strings in Set_Strings. I then iterated through cell in the matrix by iterating through rows and columns, I used the longest_common_subsequence function from question 1 to calculate the length of LCS between the two strings that correspond to that cell. I inserted that LCS length value in that cell. After that, I printed the matrix 2D array in a matrix shape as in figure (1).</p>
+<p><img src="https://i.imgur.com/3pot1oO.png" alt="img"></p>
+<p>Figure(1): Matrix for the length of the longest common sequence between the DNA strings</p>
+<p>2.a In the nested loops, the lengths of LCSs are calculated for each pair of strings, and the results are stored in len_lcs_matrix.</p>
+<p>2.b We also achieved this criterion as the matrix has [7,7] dimensions and we can use len_lcs_matrix[row, column] to give us the length of the LCS between two given strings in the Set_Strings list.</p>
+<p>2.c Yes, we can infer from the matrix how close the strings are to each other. We can look at which pair has the longest LCS in common. This pair is more probably related to each other since they have fewer changes. The longer LCSs, the stronger “closer” the relation between the two strings compared. For example, ‘d’ and ‘f’ have a common length of LCS= 101, and ‘d’ and ‘g’ have LCS= 93. That means that d is more related to f than g. Also, d and f are more related to each other more than any other string d or f. Thus, d is the closest relative to f. We can also notice that the longest LCS happens between each string and itself, which makes common sense because there is no other string that is more related to a string than itself. However, we can’t say anything about the parental relationships between these strings.</p>
+<h3 id="a-local-strategy-greedy-approach">3.a Local strategy/ Greedy approach:</h3>
+<p>We’ll leverage the similarity percentage between pairs of DNA strings as the guiding factor for establishing relationships. This percentage is computed by taking the length of the Longest Common Subsequence (LCS) between two strings and dividing it by the length of the longer string. This approach is chosen because it accommodates both insertions and deletions, considering the changes in the strings.</p>
+<p>Opting for the length of the longest string is crucial since it provides an estimate that encompasses various types of changes. In contrast, using the length of the shortest string wouldn’t effectively capture differences due to potential insertions in the longer string. Thus, dividing the LCS by the length of the longest string offers a sensible measure, providing a reliable estimation for the shared percentage.</p>
+<p>The greedy algorithm exploits this percentage similarity property for each string in relation to others. It helps identify which two strings act as the children of a particular parent string. The subsequent explanation will delve into this process.<br>
+We will use the percentage of similarity between a pair of two DNA strings as the greedy property to infer the parental relationships. Then, I created a matrix as you can see in figure(2) to calculate the percentage by dividing the length of the LCS between the two strings by the length of the longest of the two strings. 	We choose the length of the longest as both additions and deletions are allowed between the two strings and we want to capture an estimate for all types of changes. If we divide by the length of the shortest string, it won’t capture the difference between the two strings due to the additions in the longer one. Dividing the longest common sequence between the two strings by the length of the longest makes sense for a good approximation of the percentage of the similarity between them.</p>
+<p><img src="https://i.imgur.com/okD6Yzk.png" alt="img"><br>
+Figure (2) : Matrix for percentage of LCS between each two strings relative to their length.</p>
+<p>We will start at the first row in the table corresponding tothe string ‘a’ and we look for the two strings in the columns that have the highest percentage with ‘a’. In that case, c and e with percentages with a are 0.84 and 0.75 respectively, and thus will be the children of a. Since we already assigned a, d, and e to parents, they no longer need adoption and thus we will not consider them again as potential children for other strings. We will go for the row of the first child, c, in the matrix and look for the two strings with the highest percentage with c between the strings left for adoption (b, d, f, g). Since b and f have the highest percentage with c, they are the children of c. We will then go for the second child of a, which is e, and look at its corresponding row. We have only 2 strings left (d and g) so we will assign them as children of e. They aren’t the highest percentage with c but we chose them for e just because they were left as we are following a greedy algorithm. The final tree of string relationships is as in figure (3).</p>
+<p><img src="https://i.imgur.com/qcTIMqO.png" alt="img"><br>
+Figure (3) : The tree of the relationships between DNA strings generated by Local or Greedy algorithm.</p>
+<p>This is a greedy algorithm because we did not consider all relationships at once in the tree of relationships, but we only compared percentage similarity for a given parent to identify its immediate children. We selected a random great-grandparent and then assigned children for a given parent based on their percentage similarity.</p>
+<p>We did not consider other relationships or connections in the tree at the same time. This algorithm is not expected to give us the global optimum all the time especially because we do not know if the great-grandparent is in the correct position as we just start with any random string that is at the top and we connect children to it.</p>
+<h3 id="b-global-or-dynamic-programming-algorithm">3.b Global or Dynamic Programming Algorithm:</h3>
+<p>To reach a global solution, we need to identify a metric that defines the relationships between strings more accurately. To reach from a parent to a child, at least a given number of changes, such as mutations, insertions, or deletions for one character in the string, happen to the parent. The goal is to minimize the number of these changes between a given string and its child or parent in the tree of relationships between all strings. Thus, our metric is the number of modifications or the modification distance between the two strings. We want to minimize that modification distance or find the shortest distance or find the shortest path of modifications between two strings. This approach of least modification distance is applied in actual software that builds phylogenetic trees using the genomes of a given number of organisms to show the evolutionary relationship between these organisms. We will implement dynamic programming here as the problem has optimal substructure as well as overlapping subproblems.</p>
+<p>The approach uses dynamic programming as it has an <em>optimal substructure and overlapping subproblems</em>. It has an optimal substructure because we can solve the main problem of finding the modification distance between each two strings by breaking down that problem to finding the shortest modification distance between the first given number of characters (say x) in the first string and the first character in the second string. We can solve the main problem when we have the optimal solutions for that subproblem. We can notice that it also has overlapping subproblems because we may need to solve this same subproblem multiple times to reach the solution of the main problem which is finding the minimum modification distance between two strings. To take advantage of this repetition or overlapping property, we will use memoization to solve this subproblem once.</p>
+<p>To identify the great-grandfather, we will select the string that minimizes the modification distance between it and all other strings considered together at the same time. To solve this, for each string, we will calculate the sum of the distance between that string and all other strings given. 	After getting all the distances between every two strings, we add all the distances from each string to the others (for example, the distance from a to b + a to c+ a to d… etc.) and save them as the sum of distances from a. Since we do the same for all the strings, we obtain a list of all the sums. Those sums show how connected each string is to all other strings. The grandparent string is the most connected (having the shortest distances) to all other strings. Thus, the string with the lowest distance sum value is the grandparent as you can see in the appendix it is ‘b’.<br>
+After identifying the grandparent by comparing it to all the values, we identify the parents by finding the most connected strings “shortest distance” to the grandparent by the code in the appendix.</p>
+<p>After that, we will identify the two strings that have the shortest modification distance with that great-grandfather. These two strings will be the great-grandfather’s children. For each of these two strings, we will repeat the process to identify their two children. We will keep doing so until we run out of strings. We build a tree based on that. The resulting tree is in figure (4) and I did it by tree_maker function that constructs the genealogy tree using the aforementioned strategy to double-check. This is a global algorithm because we considered all possible connections between strings at once to identify their relationships as described earlier.</p>
+<p><img src="https://i.imgur.com/SJRZpR3.png" alt="img"></p>
+<p>Figure (4) : The tree of the relationships between DNA strings generated by Global or Dynamic Programming algorithm.</p>
+<h3 id="c-comparison-between-the-two-algorithms-results">3.C Comparison between the two algorithms’ results</h3>
+<p>As you can see in Figures (3) and (4) both of the trees aren’t the same. They are totally different from the great-grandfathers to the children. That is expected because the first tree is generated by the greedy approach that focuses on the immediate relationships, connecting each parent with its children based on the percentage similarity without accounting for the possibility that suboptimal local connections may lead to a more optimal arrangement. We picked a random string to be the great-grandfather which is the first string ‘a’ and the results are highly dependent on the starting point. It doesn’t agree with the great-grandfather in the global strategy in the second figure and led to a totally different tree structure. The local strategy only picks the optimum possible solution at a given connection level, but not necessarily the tree as a whole. On the other hand, the global strategy/ dynamic programming compares all possible strings in the position of the great-grandparent based on the relationships with other strings in the tree to identify the great-grandparent. Also, the global or dynamic programming approach guarantees the global optimum solution at every time no matter how we shuffle the strings or add more. The global dynamic programming approach finds the global strongest relation value to all other strings “lowest sum of distances,” considers it the grandparent, and builds the tree based on the strongest relations to each member of a certain generation. Thus, it guaranteed an overall optimal solution to the problem of reconstructing the genealogy tree.  The insights from 2. c are different now since as I mentioned the great-grandfather is different which led to the overall different parent-child relationship. However, it has some similarities in the closeness but not the same parental relationships between the strings since we inferred that ‘b’ and ‘c’ are relatives of each other. In the first tree, ‘b’ is the parent of ‘c’ but in the second tree, ‘c’ is the parent of ‘b’. The same case for ‘a’ and ‘c’. Although in the first tree ‘d’ and ‘g’ were both children to ‘e’, they are still both children but to ‘f’ in the second tree.</p>
+<h2 id="complexity-analysis">4. Complexity Analysis:</h2>
+<h3 id="greedy-algorithm">Greedy Algorithm:</h3>
+<p>In this algorithm, we build a matrix for the length of the longest common subsequence (LCS) between each two strings. We then use this matrix to generate a percentage matrix that we use as an estimation for the similarity between the two strings. We then use this as a greedy property of each string to assign relationships. Thus, the main part of creating this algorithm to create the relationships tree is generating the matrix, and the complexity of building that matrix is the same as the algorithm.					<br>
+As mentioned, we will assume we have N number of strings and M characters in each string. The code that generates the matrix has two main loops. The outer loop iterates over all possible pairs of strings, which is equivalent to N^2, the square of the number of strings. The inside loop iterates over the characters of the two strings in a nested loop form. Since each string has M characters, the inside loop has a time complexity of M^2. Thus, we can conclude that our algorithm has a time complexity of O(N^2× M^2). The big O notation means the worst-case scenario of the algorithm and we are interested in it as it represents most of the cases and we are interested in knowing how our algorithm will behave in those cases.<br>
+In case we keep the length of the strings (M) constant and only change the number of strings, we do not have to worry about the complexity component with respect to M as it will be a constant value. Thus, in that case, the time complexity of our greedy algorithm is O(N^2).<br>
+To test that experimentally, we designed an experiment where we changed the number of strings in the relationship tree. We calculated the average run time as we ran every instance (number of strings) of the experiment multiple times to take the average. We produced a graph for the results. This is present in the corresponding part in the appendix. If we look at our experimental results (fig. 5), we can notice that the scaling of the graph as the input size increases is quadratic which means that when the input size increases by 2, the running time increases by (2^2=4).<br>
+Since the time complexity basically represents the time growth scaling of the algorithm as the input size increases, we can notice that the experimental results indeed agree with our analytical results.</p>
+<p><img src="https://i.imgur.com/wJeOutH.png" alt="img"></p>
+<p>Figure (5) : The experimental runtime growth for the greedy algorithm with input size varied with number of strings. The runtime scaling is quadratic with input size.</p>
+<h3 id="dynamic-programming">Dynamic programming</h3>
+<p>The main algorithm of the dynamic programming approach depends on a function named <code>edit_distance_dynamic_programming</code>, which calculates the least modification distance between each pair of strings. This function implements a dynamic programming approach, creating a two-dimensional array to record the solutions of the subproblems. The size of that array depends on the number of characters in the strings. Since the number of characters is denoted as M, the size of the array is M^2. This function is then called by the <code>distances</code> function for every possible pair of strings in the list. As we have N number of strings, this function is called N^2 times. Thus, the overall time complexity of that algorithm is O(N^2 × M^2).</p>
+<p>Similarly, as mentioned earlier, in case we keep the length of the strings (M) constant and only vary the number of strings, we do not have to worry about the complexity component with respect to M as it will be a constant value. Thus, in that case, the time complexity of our greedy algorithm is O(N^2).</p>
+<p>As depicted in the corresponding part in the Appendix, we tested this algorithm experimentally by changing the number of strings (N) and representing the input size. We then calculated the time that the algorithm takes to run. We repeated the time calculation step several times per input size so that we took the average runtime per input size. We see the graph in figure (6). We can notice that the graph scales quadratically as the input size increases. This agrees with our time complexity value calculated analytically.</p>
+<p><img src="https://i.imgur.com/VuGun1c.png" alt="img"><br>
+Figure (6) : The experimental runtime growth for the dynamic programming algorithm with input size varied with number of strings. The runtime scaling is quadratic with input size.</p>
+<h3 id="comparing-greedy-and-dynamic-programming-approaches">Comparing greedy and dynamic programming approaches</h3>
+<p>From the analytical approach, we can notice that the time complexity for both algorithms is the same O(N2 × M2) or O(N2) when only considering the number of strings and making the number of characters per string constant. That means that both algorithms have a runtime that scales in the same manner as the input size increases.<br>
+We can also confirm that from the experimental approaches, we notice that they both scaled quadratically as we increased the number of strings as the input size as we see in figure (7). Also, the greedy algorithm approach looks a little better than the dynamic in the figure since it doesn’t need memoization that could affect the time complexity or check subproblems that cause overhead but we know that even if it has better time complexity, we can’t depend on the greedy since as we showed above how it doesn’t give optimal solution and just check immediate aspects without looking for other strings so it isn’t guaranteed to give the global optimal solution. Also, this problem has overlapping subproblems and optimal substructure so it is better to go with dynamic programming, and greedy would be better for simpler problems.</p>
+<p><img src="https://i.imgur.com/HLF4fH6.png" alt="img"></p>
+<p>Figure (7) : Comparison between experimental runtime growth for the greedy and dynamic programming algorithm with input size represented in number of strings. The runtime for both algorithms scale quadratically as the input size increases.</p>
+<h2 id="estimating-the-probabilities-of-insertions-deletions-and-mutations">5. Estimating the probabilities of insertions, deletions, and mutations:</h2>
+<p>To estimate the probabilities of a certain type of modifications in DNA, we can use our DNA strings and the parent-child relationships in the tree generated by our algorithm. We will count the number of each type of modification between a given parent and its child. After that, we will take the average of the number of that given type of modification between all parent-child connections in the tree.</p>
+<p>To do so, we will start by aligning each parent and child sequence. The alignment will be that all the sequences that agree will be in positions corresponding to each other.<br>
+If there is a missing character in one of them, it will be represented at an empty slot or a dash (-) at that position.<br>
+If there is a change in the character, there will be a mismatch at that position in the alignment. To do this alignment step, we will utilize a very famous simple alignment algorithm called the <strong>Needleman-Wunsch algorithm</strong>. We implemented the algorithm strategy and the Python code from Slowikowski, K. (2020).</p>
+<p>Basically, the Needleman-Wunsch algorithm uses a dynamic programming approach to align genetic code or protein sequence and is used widely in genomics and proteomics computational applications for its relative simplicity and efficiency in comparing biological sequences. The algorithm divides the large problem, which is the full sequence into smaller subproblems and solves these small problems to find the large problem’s optimal solution. It starts by building a matrix between the characters of the two strings. It moves through the cells row by row and assigns a score to the degree of alignment between the characters based on comparing the scores of the ones around in the direction left, top, or top left, and adding appropriate scores for match, and mismatch (modification) or deletion/insertion. After filling up the matrix, the algorithm finds the optimal path from the bottom right to the top left that will have the highest possible score. More importantly, the output of the algorithm is two strings, where the gaps in one of the sequences (due to an insertion in the other sequence or a deletion in that sequence) are represented as a dash. A mutation is represented by just a mismatch at that particular site in the alignment.</p>
+<p>For every parent-child string pair, we will align them using the algorithmic strategy described above. After that, we want to count the number of modifications that happened between the parent and the child. As we explained earlier, the parent string is the original one that produced the child and, thus, we will take it as a reference for identifying the type of modifications. Based on that, we will have three types of modifications:</p>
+<ul>
+<li>Mutations: it will be represented as a mismatch between the aligned parent and child strings</li>
+<li>Insertions: it is when we find a gap or a (-) in the parent string but a character in the child string</li>
+<li>Deletions: it is when we find a character in the parent string but a gap or a (-) in the child string.</li>
+</ul>
+<p>We will divide the number of each type of modification to determine the probability of a given type of modification happening per a character in that parent string. After we find the results for the probability of each type of modification (mutations, insertions, and deletions) between each pair of parent-child strings, we will calculate the average by summing them up and dividing by the number of parents-children pairs we have. That way, we will get an estimated probability for the types of modifications for a given string. You can see all of these calculations in the code implementation in the appendix B</p>
+<h3 id="b.-python-implementation-and-estimation-results-reflection">b. Python implementation and estimation results reflection</h3>
+<p>We implemented this algorithmic strategy to estimate the probability of the three different types of modifications (mutations, insertions, and deletions) using python as in the corresponding part of the code in Appendix B. We believe this estimation approach best utilize the data given to make a strong and plausible estimation. We got these estimated probability values:</p>
+<ul>
+<li>Deletions probability is 0.0358</li>
+<li>Insertions probability is 0.1146</li>
+<li>Mutations probability is 0.0596</li>
+</ul>
+<p>The relatively low probability of deletions suggests that, on average, there’s a small chance of a character being deleted when transitioning from parent to child. This aligns with the biological intuition that deletions might be less frequent events.</p>
+<p>A higher probability of insertions indicates that, on average, there’s a more significant chance of introducing new characters in the child sequence compared to deletions. This could be attributed to the dynamic nature of DNA, where insertions might be more common in certain contexts.</p>
+<p>The probability of mutations falls between deletions and insertions, suggesting that, on average, there’s a moderate chance of character changes occurring between parent and child sequences. This is in line with the understanding that mutations are fundamental to genetic diversity.</p>
+<p>We can notice that these values seem plausible as they are low, which corresponds to our knowledge about mutations or changes in genetic codes that are quite rare events.The probabilities seem reasonable from a biological standpoint, but it’s important to note that these estimates are dependent on the dataset and the specific characteristics of the DNA sequences we are working with. Real-world biological data can be complex, and these estimates might vary across different scenarios.</p>
+<h2 id="appendix-a">Appendix A:</h2>
+<h3 id="los-applications">LOs Applications:</h3>
+<p><strong>#ComputationalCritique:</strong><br>
+I explicitly critiqued the local and global approaches and how they ended up with an optimal solution. I set the limitations for the greedy algorithms that resulted in a different tree structure than the dynamic programming. I explained the effectiveness of the implementations of algorithms throughout the whole project. I explained why the results made sense and whether they met the expectations. I discussed how dynamic programming in this project provides an optimal solution.</p>
+<p><strong>#AlgoStratDataStruct:</strong><br>
+I justified the choice of the greedy for the local approach and dynamic programming for the global approach. I explained their strategies for finding the parental relationship between the strings. I also explained the algorithm strategy to estimate the probability of the changes. I explained how each algorithm works and how they are guaranteed to provide the expected answer.</p>
+<p><strong>#PythonProgramming:</strong><br>
+I used the feedback from the previous assignments to run the code more than once before the submission, as there was a bug every time after the submission. I made sure to add many test cases to evaluate the code broadly. I printed the output of the function that isn’t in the same order as the assertion statement in the prompt to show how the algorithm works, but the order is not the same.</p>
+<p><strong>#CodeReadability:</strong><br>
+I ensured all the functions had docstring and the comments were short enough. I named the functions properly to make them clearer for the reader. I set the variables to reasonable names to avoid confusion from the reader. Also, I ensured that the code line didn’t exceed the margin of the page. In the pdf version, I made sure there is no statements cut-off in the code as in the previous assignment.</p>
+<p><strong>#ComplexityAnalysis:</strong><br>
+I set the hypothetical and experimental time complexity for both strategies, Greedy and dynamic programming, and showed how the results align as expected. I analyzed the functions that dominate in both strategies that give rise to the overall time complexity. I set the formula to show how it ended up by the quadratic time complexity.</p>
+<p><strong>#professionalism:</strong><br>
+I put time and effort into presenting the data in a structured and organized report. I reviewed the context in Grammarly to avoid any typos. I cited the external algorithm to estimate the insertion, deletion, and mutation probability.</p>
+<p>word count: 300 words.</p>
+<h3 id="hcs">HCs:</h3>
+<p><strong>#dataviz:</strong><br>
+I added clear graphs and a description to each one. I added title,  x_axis, and y_axis label for the graphs. I explained the graphs and mentioned the figures in the relevant context.</p>
+<p><strong>#estimation:</strong><br>
+I produced an estimation for the probabilities of the modification (insertions, deletions, and mutations). I explained the calculation strategy well and how it is used in this context. I explained the approach step by step and implemented it in the code to find the final probabilities. I interpreted the values of the estimations in the context.</p>
+<p><strong>#audience:</strong><br>
+The audience here is the professor, who I thought as one of my peers. I ensured that I explained everything and the language was clear for them. When I used an external strategy (Needleman-Wunsch algorithm), I explained the full approach since I knew that we hadn’t dealt with this algorithm before.</p>
+<p>word count: 140 words.</p>
+<h2 id="references">References</h2>
+<p>Slowikowski, K. (2020). A simple version of the Needleman-Wunsch algorithm in Python [Source Code].<br>
+<a href="https://gist.github.com/slowkow/06c6dba9180d013dfd82bec217d22eb5">https://gist.github.com/slowkow/06c6dba9180d013dfd82bec217d22eb5</a></p>
+<p><strong>AI statement:</strong></p>
+<p>I used Grammarly to evaluate the grammer of the texts. I didn’t use other types of AI.</p>
+<h2 id="appendix-b">Appendix B:</h2>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#DNA strings given in the problem</span>
+a<span class="token operator">=</span><span class="token triple-quoted-string string">'''GCCTCCGTTCATGACGTGTGTATTTTATTCCGAGCAGGATTCAATCGGACATCCAG\
+TTCTGCTACATTCCTAGCTAATGAAGAAACTAGACAGCGTCATAGTCTCTATTCTCATAGTGAATAAC'''</span>
+
+
+
+b<span class="token operator">=</span>'GACCTCGTCAGCTTCAGTTTATCCAGCAGAATTCAGATGTCATAGTT\
+CGTATCATTCCTGCAAAGAGTACTAGAAGCGTCATAGTCTTTTCTAATAGTAC'
+c<span class="token operator">=</span>'GTCCCTCGTCAAGACGTTTCTATTTTATTCCAGCAGGATTCAATCGGCATCA\
+GTTCTGTACATTCCTGCAAAGAAGTACTAGACAGCGTCATAGTCTCTATCTAACTAATTAA'
+
+d<span class="token operator">=</span>'ACCTCTCACTAAGTTTCATCAGGACGAGAGAATAAAGACTTCACGTTTCAGTAGCACT\
+TCCTGGCCCACACGAGGTACCTAGCAAGCGGTATATAGTCTTTTTTTAGATAGGGAT'
+
+e<span class="token operator">=</span>'GTCCTCTGTCAAAGATGTATTACTGTTTTGCACAGGAATTCAACGGGCATTCAGTTTT\
+GTACATTACTCGCAAAGACAGTTACTAGACCAACGTCATAAGTCTCTACAAACTAATTAA'
+
+f<span class="token operator">=</span>'ACCTCTCACTGCAGTTTATCAGGACGAGAGAATAAGATGTCATGTTTCAGTATCATTC\
+CTGCCACACGAGTACTAGAAGCGGTATATAGTCTTTTTCTAGATAGGAT'
+
+g<span class="token operator">=</span>'ACGTCATCACCTCCAGATTTATCTAGGCACGCGAGAATAAGATGTACATGATTTACAGTA\
+ACATTCCTGCCACACAGTTAGAAGTGATATAGTCTGTCTTCTTAGATCAGGAT'
+
+
+Set_Strings<span class="token operator">=</span> <span class="token punctuation">[</span>a<span class="token punctuation">,</span>b<span class="token punctuation">,</span>c<span class="token punctuation">,</span>d<span class="token punctuation">,</span>e<span class="token punctuation">,</span>f<span class="token punctuation">,</span>g<span class="token punctuation">]</span>
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">longest_common_subsequence</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+ Find the Longest Common Subsequence (LCS) between two strings and return
+ all unique LCSs along with their length.
+
+    Parameters:
+    X (str): The first input string
+    Y (str): The second input string
+
+    Returns:
+    tuple: A tuple containing a list of all unique LCSs and the length of the 
+    first LCS in the list.
+    """</span>
+
+    <span class="token comment"># Lookup table used to store the lengths of LCS between substrings of X (X[0...i-1]) </span>
+    <span class="token comment">#and Y (Y[0...j-1])</span>
+    lookup_table <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token number">0</span> <span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>Y<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token keyword">for</span> y <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>X<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+
+    <span class="token comment"># Use this function (LCS_table) to fill out the lookup table:</span>
+    LCS_table<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>
+
+    <span class="token comment"># Use this function to find all the longest common subsequences (LCSs)</span>
+    lcs <span class="token operator">=</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>X<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>Y<span class="token punctuation">)</span><span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>  <span class="token comment"># Avoid duplicates</span>
+    lcs_set <span class="token operator">=</span> <span class="token builtin">set</span><span class="token punctuation">(</span>lcs<span class="token punctuation">)</span>
+    lcs_list <span class="token operator">=</span> <span class="token builtin">list</span><span class="token punctuation">(</span>lcs_set<span class="token punctuation">)</span>
+    all_lcs <span class="token operator">=</span> <span class="token punctuation">(</span>lcs_list<span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>lcs_list<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> all_lcs
+
+<span class="token keyword">def</span> <span class="token function">LCS_table</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Use a bottom-up dynamic programming approach to calculate the LCS between
+    two strings and fill out the lookup table.
+
+    Parameters:
+    X (str): The first input string
+    Y (str): The second input string
+    lookup_table (list): A 2D list used to store the intermediate results 
+    of calculating LCS
+
+    Returns:
+    list: The filled lookup table.
+    """</span>
+
+    <span class="token comment"># Using a bottom-up approach, fill out the lookup table</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>X<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>Y<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token comment"># In case the current elements of X and Y are the same</span>
+            <span class="token keyword">if</span> X<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> Y<span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                lookup_table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> lookup_table<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span>
+            <span class="token comment"># In case they are different:</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                lookup_table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">max</span><span class="token punctuation">(</span>lookup_table<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> lookup_table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> lookup_table
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">LCSs</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m<span class="token punctuation">,</span> n<span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    This function uses the lookup table to determine and return 
+    all the possible longest common subsequences between X and Y. 
+    It implements a dynamic programming approach as it utilizes the lookup 
+    table we built to store the lengths of the longest common subsequences
+    between the substrings of X and Y.
+    Inputs
+    ----------
+    X, Y: strings
+        Strings to compute the LCS
+    m: int
+        length of string X
+    n: int
+        length of string Y
+    lookup_table: 2d list
+        2D list containing the lookup table constructed
+    Returns
+    ----------
+    list
+        list of all possible LCSs between X and Y
+    """</span>
+    <span class="token comment"># if we have no charachters in one of the strings left, return list of empty string</span>
+    <span class="token keyword">if</span> m <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">or</span> n <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span> 
+        <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token string">''</span><span class="token punctuation">]</span>
+    <span class="token comment"># if the last charachters in both strings match</span>
+    <span class="token keyword">if</span> X<span class="token punctuation">[</span>m<span class="token number">-1</span><span class="token punctuation">]</span> <span class="token operator">==</span> Y<span class="token punctuation">[</span>n<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+<span class="token comment"># we chop the last charachters in X and Y and find all LCS of the substrings # which </span>
+<span class="token comment">#are X[0...m-2] and y[0...n-2] now, and add to the list</span>
+        lcs <span class="token operator">=</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>
+        <span class="token comment"># we will also append that last charachter to all LCS of these substrings</span>
+        <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>lcs<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span> 
+            lcs<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> lcs<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token punctuation">(</span>X<span class="token punctuation">[</span>m<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> lcs
+    <span class="token comment"># else, When the last charachters do not match, proceed with the following</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+<span class="token comment"># we look at the table, if the left cell of the current one has a higher value</span>
+<span class="token comment">#that the top cell </span>
+<span class="token comment"># we disregard the current character in the Y string</span>
+<span class="token comment"># and proceed with finding LCSs in the substrings X[0...m-1] and y[0...n-2].</span>
+        <span class="token keyword">if</span> lookup_table<span class="token punctuation">[</span>m<span class="token punctuation">]</span><span class="token punctuation">[</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> lookup_table<span class="token punctuation">[</span>m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m<span class="token punctuation">,</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>
+<span class="token comment"># we look at the table, if the opposite is true, or if the top cell of the current one</span>
+<span class="token comment"># has a higher value that the left cell, we disregard the current charachter of </span>
+<span class="token comment">#the X string and we proceed with finding LCSs in the substring X[0...m-2] and y[0...n-1].</span>
+        <span class="token keyword">if</span> lookup_table<span class="token punctuation">[</span>m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span> <span class="token operator">&gt;</span> lookup_table<span class="token punctuation">[</span>m<span class="token punctuation">]</span><span class="token punctuation">[</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>
+        <span class="token comment"># in case the top and the left cells have equal values, we consider both:</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            top_cell <span class="token operator">=</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span> 
+            left_cell <span class="token operator">=</span> LCSs<span class="token punctuation">(</span>X<span class="token punctuation">,</span> Y<span class="token punctuation">,</span> m<span class="token punctuation">,</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> lookup_table<span class="token punctuation">)</span>
+            <span class="token comment"># return them together merged</span>
+            <span class="token keyword">return</span> top_cell <span class="token operator">+</span> left_cell
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python">longest_common_subsequence<span class="token punctuation">(</span>b<span class="token punctuation">,</span> a<span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">## test cases:</span>
+<span class="token comment"># two empty</span>
+x1 <span class="token punctuation">,</span> y1 <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">''</span>
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x1<span class="token punctuation">,</span> y1<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">''</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># one empty</span>
+x2 <span class="token punctuation">,</span> y2 <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">'a'</span>
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x2<span class="token punctuation">,</span> y2<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">''</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># two one charachter and exactly the same</span>
+x3 <span class="token punctuation">,</span> y3 <span class="token operator">=</span> <span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token string">'a'</span>
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x3<span class="token punctuation">,</span> y3<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'a'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># two have many charachters and exactly the same</span>
+x4 <span class="token punctuation">,</span> y4 <span class="token operator">=</span> <span class="token string">'abcdefglmnobqrsxyz'</span><span class="token punctuation">,</span> <span class="token string">'abcdefglmnobqrsxyz'</span> 
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x4<span class="token punctuation">,</span> y4<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'abcdefglmnobqrsxyz'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># two have many charachters that are the same with duplicates</span>
+x5 <span class="token punctuation">,</span> y5 <span class="token operator">=</span> <span class="token string">'abacbdcedfegflgmlnmonpoqprqsrxsyxzyz'</span><span class="token punctuation">,</span> <span class="token string">'abacbdcedfegflgmlnmonpoqprqsrxsyxzyz'</span> 
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x5<span class="token punctuation">,</span> y5<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'abacbdcedfegflgmlnmonpoqprqsrxsyxzyz'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>\
+                                              <span class="token number">36</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># two have many charachters with nothing in common not the same length</span>
+x6 <span class="token punctuation">,</span> y6 <span class="token operator">=</span> <span class="token string">'abcde'</span><span class="token punctuation">,</span> <span class="token string">'xyz'</span> 
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x6<span class="token punctuation">,</span> y6<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">''</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># two have charachters in common but they do not have the same length</span>
+x7 <span class="token punctuation">,</span> y7 <span class="token operator">=</span> <span class="token string">'abcde'</span><span class="token punctuation">,</span> <span class="token string">'ace'</span> 
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x7<span class="token punctuation">,</span> y7<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'ace'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># there are multiple LCS with the same length</span>
+<span class="token comment">#this sentence is going to give assertion error since the order of the output </span>
+<span class="token comment">#isn't the same as you can see </span>
+<span class="token comment">#in the second code cell but it gives the same result with different order.</span>
+x8<span class="token punctuation">,</span> y8 <span class="token operator">=</span> <span class="token string">'abcbdabacddcab'</span><span class="token punctuation">,</span> <span class="token string">'bdcaba'</span>
+<span class="token keyword">assert</span><span class="token punctuation">(</span>longest_common_subsequence<span class="token punctuation">(</span>x8<span class="token punctuation">,</span> y8<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'bcaba'</span><span class="token punctuation">,</span> <span class="token string">'bdcab'</span><span class="token punctuation">,</span> <span class="token string">'bdaba'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Test cases</span>
+x1<span class="token punctuation">,</span> y1 <span class="token operator">=</span> <span class="token string">'ABCBDAB'</span><span class="token punctuation">,</span> <span class="token string">'BDCABA'</span>
+x2<span class="token punctuation">,</span> y2 <span class="token operator">=</span> <span class="token string">'abc'</span><span class="token punctuation">,</span> <span class="token string">''</span>
+x3<span class="token punctuation">,</span> y3 <span class="token operator">=</span> <span class="token string">'abc'</span><span class="token punctuation">,</span> <span class="token string">'a'</span>
+x4<span class="token punctuation">,</span> y4 <span class="token operator">=</span> <span class="token string">'abc'</span><span class="token punctuation">,</span> <span class="token string">'ac'</span>
+
+<span class="token comment"># Test case 1</span>
+result1 <span class="token operator">=</span> longest_common_subsequence<span class="token punctuation">(</span>x1<span class="token punctuation">,</span> y1<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Test Case 1: x={x1}, y={y1}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Expected Result: (['BDAB', 'BCBA', 'BCAB'], 4)"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Actual Result: {result1}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Test case 2</span>
+result2 <span class="token operator">=</span> longest_common_subsequence<span class="token punctuation">(</span>x2<span class="token punctuation">,</span> y2<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Test Case 2: x={x2}, y={y2}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Expected Result: ([''], 0)"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Actual Result: {result2}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Test case 3</span>
+result3 <span class="token operator">=</span> longest_common_subsequence<span class="token punctuation">(</span>x3<span class="token punctuation">,</span> y3<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Test Case 3: x={x3}, y={y3}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Expected Result: (['a'], 1)"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Actual Result: {result3}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Test case 4</span>
+result4 <span class="token operator">=</span> longest_common_subsequence<span class="token punctuation">(</span>x4<span class="token punctuation">,</span> y4<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Test Case 4: x={x4}, y={y4}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Expected Result: (['ac'], 2)"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Actual Result: {result4}"</span><span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+<span class="token keyword">def</span> <span class="token function">build_matrix</span><span class="token punctuation">(</span>Set_Strings<span class="token punctuation">,</span> len_lcs_matrix<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Build a matrix of the lengths of Longest Common Subsequences (LCS) for each pair 
+    of strings in Set_Strings.
+
+    Parameters:
+    Set_Strings (list): A list containing strings to be compared.
+    len_lcs_matrix (numpy.ndarray): An empty matrix to store the lengths of the
+    LCSs for each pair of strings.
+
+    Returns:
+    None: The function prints the resulting LCSs lengths matrix.
+    """</span>
+
+    <span class="token comment"># Iterate over each pair of strings in Set_Strings</span>
+    <span class="token keyword">for</span> row <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> column <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token comment"># Get the ith and jth strings from Set_Strings</span>
+            string1 <span class="token operator">=</span> Set_Strings<span class="token punctuation">[</span>row<span class="token punctuation">]</span>
+            string2 <span class="token operator">=</span> Set_Strings<span class="token punctuation">[</span>column<span class="token punctuation">]</span>
+
+            <span class="token comment"># Initialize the lengths of the strings</span>
+            n <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>string1<span class="token punctuation">)</span>
+            m <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>string2<span class="token punctuation">)</span>
+
+            <span class="token comment"># Create a two-dimensional array of size (n+1) x (m+1) to store</span>
+            <span class="token comment">#the lengths of the LCSs</span>
+            lcs_matrix <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span>n<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">,</span> m<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+            <span class="token comment"># Iterate over the characters in string1 and string2</span>
+            <span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> n<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">for</span> y <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> m<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                    <span class="token comment"># If the characters match, add 1 to the length of the LCS</span>
+                    <span class="token keyword">if</span> string1<span class="token punctuation">[</span>x<span class="token number">-1</span><span class="token punctuation">]</span> <span class="token operator">==</span> string2<span class="token punctuation">[</span>y<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                        lcs_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y<span class="token punctuation">]</span> <span class="token operator">=</span> lcs_matrix<span class="token punctuation">[</span>x<span class="token number">-1</span><span class="token punctuation">,</span> y<span class="token number">-1</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span>
+                    <span class="token comment"># If the characters don't match, take the maximum of </span>
+                    <span class="token comment">#the previous values</span>
+                    <span class="token keyword">else</span><span class="token punctuation">:</span>
+                        lcs_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">max</span><span class="token punctuation">(</span>lcs_matrix<span class="token punctuation">[</span>x<span class="token number">-1</span><span class="token punctuation">,</span> y<span class="token punctuation">]</span><span class="token punctuation">,</span> lcs_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+            <span class="token comment"># Store the length of the LCS for this pair of strings in len_lcs_matrix</span>
+            len_lcs_matrix<span class="token punctuation">[</span>row<span class="token punctuation">,</span> column<span class="token punctuation">]</span> <span class="token operator">=</span> lcs_matrix<span class="token punctuation">[</span>n<span class="token punctuation">,</span> m<span class="token punctuation">]</span>
+
+    <span class="token comment"># Identifying columns and rows for formatting</span>
+    column_names <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token string">'b'</span><span class="token punctuation">,</span> <span class="token string">'c'</span><span class="token punctuation">,</span> <span class="token string">'d'</span><span class="token punctuation">,</span> <span class="token string">'e'</span><span class="token punctuation">,</span> <span class="token string">'f'</span><span class="token punctuation">,</span> <span class="token string">'g'</span><span class="token punctuation">]</span>
+    row_names <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token string">'b'</span><span class="token punctuation">,</span> <span class="token string">'c'</span><span class="token punctuation">,</span> <span class="token string">'d'</span><span class="token punctuation">,</span> <span class="token string">'e'</span><span class="token punctuation">,</span> <span class="token string">'f'</span><span class="token punctuation">,</span> <span class="token string">'g'</span><span class="token punctuation">]</span>
+    matrix <span class="token operator">=</span> pd<span class="token punctuation">.</span>DataFrame<span class="token punctuation">(</span>len_lcs_matrix<span class="token punctuation">,</span> columns<span class="token operator">=</span>column_names<span class="token punctuation">,</span> index<span class="token operator">=</span>row_names<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"LCSs lengths matrix "</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>matrix<span class="token punctuation">.</span>astype<span class="token punctuation">(</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+
+<span class="token comment"># Set_Strings contains the strings to be compared</span>
+Set_Strings <span class="token operator">=</span> <span class="token punctuation">[</span>a<span class="token punctuation">,</span> b<span class="token punctuation">,</span> c<span class="token punctuation">,</span> d<span class="token punctuation">,</span> e<span class="token punctuation">,</span> f<span class="token punctuation">,</span> g<span class="token punctuation">]</span>
+
+<span class="token comment"># len_lcs_matrix will store the lengths of the LCSs for each pair of strings</span>
+len_lcs_matrix <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+build_matrix<span class="token punctuation">(</span>Set_Strings<span class="token punctuation">,</span> len_lcs_matrix<span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#percentage of lcs length relative to the row sequence length</span>
+
+lcs_percentages <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+sequences_lengths <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token builtin">len</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span> <span class="token keyword">for</span> n <span class="token keyword">in</span> Set_Strings<span class="token punctuation">]</span>
+
+
+<span class="token comment">#looping through the LCSs </span>
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    fraction_row <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment">#getting the fraction of LCS to the length of the row string</span>
+        fraction_row<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token builtin">round</span><span class="token punctuation">(</span>len_lcs_matrix<span class="token punctuation">[</span>i<span class="token punctuation">,</span>j<span class="token punctuation">]</span><span class="token operator">/</span>sequences_lengths<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    lcs_percentages<span class="token punctuation">.</span>append<span class="token punctuation">(</span>fraction_row<span class="token punctuation">)</span>
+len_lcs_matrix_fract <span class="token operator">=</span> np<span class="token punctuation">.</span>array<span class="token punctuation">(</span>lcs_percentages<span class="token punctuation">)</span>
+
+<span class="token comment">#identifying columns and rows for formatting</span>
+column_names <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token string">'b'</span><span class="token punctuation">,</span> <span class="token string">'c'</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">,</span> <span class="token string">'e'</span><span class="token punctuation">,</span> <span class="token string">'f'</span><span class="token punctuation">,</span> <span class="token string">'g'</span><span class="token punctuation">]</span>
+row_names    <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'a'</span><span class="token punctuation">,</span> <span class="token string">'b'</span><span class="token punctuation">,</span> <span class="token string">'c'</span><span class="token punctuation">,</span><span class="token string">'d'</span><span class="token punctuation">,</span> <span class="token string">'e'</span><span class="token punctuation">,</span> <span class="token string">'f'</span><span class="token punctuation">,</span> <span class="token string">'g'</span><span class="token punctuation">]</span>
+fract_matrix <span class="token operator">=</span> pd<span class="token punctuation">.</span>DataFrame<span class="token punctuation">(</span>len_lcs_matrix_fract<span class="token punctuation">,</span> columns<span class="token operator">=</span>column_names<span class="token punctuation">,</span> index<span class="token operator">=</span>row_names<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"percentage of lcs length relative to the row sequence length"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>fract_matrix<span class="token punctuation">)</span>
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#finding the least modifications distance between a given two strings using dynamic programming</span>
+<span class="token comment"># show the great-grandfather based on the calculations</span>
+<span class="token keyword">def</span> <span class="token function">edit_distance_dynamic_programming</span><span class="token punctuation">(</span>str1<span class="token punctuation">,</span> str2<span class="token punctuation">,</span> m<span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Calculate the edit distance between two given strings using dynamic programming.
+    The edit distance is the minimum number of operations
+    (insertions, deletions, and mutations)
+    required to transform one string into the other.
+
+    Parameters:
+    str1 (str): The first input string
+    str2 (str): The second input string
+    m (int): The length of str1
+    n (int): The length of str2
+
+    Returns:
+    int: The minimum number of operations required to transform str1 into str2.
+    """</span>
+    dp <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token number">0</span> <span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>m <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>m <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> i <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+                dp<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> j  <span class="token comment"># Min. operations = j</span>
+            <span class="token keyword">elif</span> j <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+                dp<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> i  <span class="token comment"># Min. operations = i</span>
+            <span class="token keyword">elif</span> str1<span class="token punctuation">[</span>i<span class="token number">-1</span><span class="token punctuation">]</span> <span class="token operator">==</span> str2<span class="token punctuation">[</span>j<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                dp<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> dp<span class="token punctuation">[</span>i<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token number">-1</span><span class="token punctuation">]</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                dp<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">+</span> <span class="token builtin">min</span><span class="token punctuation">(</span>dp<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> dp<span class="token punctuation">[</span>i<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> dp<span class="token punctuation">[</span>i<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">[</span>j<span class="token number">-1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> dp<span class="token punctuation">[</span>m<span class="token punctuation">]</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span>
+
+
+<span class="token keyword">def</span> <span class="token function">retrieve_name</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span> Vars<span class="token operator">=</span><span class="token builtin">vars</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Get the name of a variable.
+
+    Inputs:
+    x: The variable to find the name for
+
+    Returns:
+    str: The name of the given variable
+    """</span>
+    <span class="token keyword">for</span> k <span class="token keyword">in</span> Vars<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span> <span class="token builtin">type</span><span class="token punctuation">(</span>Vars<span class="token punctuation">[</span>k<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> x <span class="token keyword">is</span> Vars<span class="token punctuation">[</span>k<span class="token punctuation">]</span><span class="token punctuation">:</span>
+                <span class="token keyword">return</span> k
+
+
+<span class="token keyword">def</span> <span class="token function">distances</span><span class="token punctuation">(</span>strings<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Get the distances between each two strings.
+
+    Inputs:
+    strings: A list of strings
+
+    Returns:
+    list: A list of distances between each two pair of strings
+    """</span>
+    vals <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> strings<span class="token punctuation">:</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> strings<span class="token punctuation">:</span>
+            <span class="token keyword">if</span> <span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                <span class="token keyword">pass</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                vals<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>retrieve_name<span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> retrieve_name<span class="token punctuation">(</span>j<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+                             edit_distance_dynamic_programming\
+                             <span class="token punctuation">(</span>i<span class="token punctuation">,</span> j<span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>j<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> vals
+
+
+<span class="token keyword">def</span> <span class="token function">all_sums</span><span class="token punctuation">(</span>strings<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Calculate the sum of all distances between each string and others.
+
+    Inputs:
+    strings: A list of strings
+
+    Returns:
+    list: A list of the sum of distances between each two pair of strings
+    """</span>
+    a_sum<span class="token punctuation">,</span> b_sum<span class="token punctuation">,</span> c_sum<span class="token punctuation">,</span> d_sum<span class="token punctuation">,</span> e_sum<span class="token punctuation">,</span> f_sum<span class="token punctuation">,</span> g_sum <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span>
+    all_sums_vals <span class="token operator">=</span> distances<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> all_sums_vals<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'a'</span><span class="token punctuation">:</span>
+            a_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'b'</span><span class="token punctuation">:</span>
+            b_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'c'</span><span class="token punctuation">:</span>
+            c_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'d'</span><span class="token punctuation">:</span>
+            d_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'e'</span><span class="token punctuation">:</span>
+            e_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'f'</span><span class="token punctuation">:</span>
+            f_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            g_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+
+    all_sums <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token string">"a"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>a_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"b"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>b_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"c"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>c_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span> \
+                <span class="token punctuation">[</span><span class="token string">"d"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>d_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token punctuation">[</span><span class="token string">"e"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>e_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"f"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>f_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"g"</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>g_sum<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">return</span> all_sums
+
+
+<span class="token keyword">def</span> <span class="token function">grandparent_finder</span><span class="token punctuation">(</span>strings<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Find the grandparent node value from the all sum.
+
+    Inputs:
+    strings: A list of strings
+
+    Returns:
+    int: The value of the grandparent node
+    """</span>
+    a_sum<span class="token punctuation">,</span> b_sum<span class="token punctuation">,</span> c_sum<span class="token punctuation">,</span> d_sum<span class="token punctuation">,</span> e_sum<span class="token punctuation">,</span> f_sum<span class="token punctuation">,</span> g_sum <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span>
+    all_sums_vals <span class="token operator">=</span> distances<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> all_sums_vals<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'a'</span><span class="token punctuation">:</span>
+            a_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'b'</span><span class="token punctuation">:</span>
+            b_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'c'</span><span class="token punctuation">:</span>
+            c_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'d'</span><span class="token punctuation">:</span>
+            d_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'e'</span><span class="token punctuation">:</span>
+            e_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">elif</span> i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'f'</span><span class="token punctuation">:</span>
+            f_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            g_sum <span class="token operator">+=</span> i<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
+
+    sum_values <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">(</span>a_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>b_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>c_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>d_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+                  <span class="token builtin">int</span><span class="token punctuation">(</span>e_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>f_sum<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span>g_sum<span class="token punctuation">)</span><span class="token punctuation">]</span>
+    grandparent_value <span class="token operator">=</span> <span class="token builtin">int</span><span class="token punctuation">(</span><span class="token builtin">min</span><span class="token punctuation">(</span>sum_values<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> grandparent_value
+
+
+<span class="token comment"># Driver code</span>
+strings <span class="token operator">=</span> <span class="token punctuation">[</span>a<span class="token punctuation">,</span> b<span class="token punctuation">,</span> c<span class="token punctuation">,</span> d<span class="token punctuation">,</span> e<span class="token punctuation">,</span> f<span class="token punctuation">,</span> g<span class="token punctuation">]</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>all_sums<span class="token punctuation">(</span>strings<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'grandparent='</span><span class="token punctuation">,</span> grandparent_finder<span class="token punctuation">(</span>strings<span class="token punctuation">)</span><span class="token punctuation">)</span>
+distances<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#this cell shows the tree based on the dynamic programming strategy</span>
+<span class="token keyword">def</span> <span class="token function">tree_maker</span><span class="token punctuation">(</span>all_of_sums<span class="token punctuation">,</span> grandpaernt<span class="token punctuation">,</span> all_distances<span class="token punctuation">)</span><span class="token punctuation">:</span>
+
+    <span class="token triple-quoted-string string">"""
+
+    A function that takes all sums list, grandparent value, all the distances 
+    from one string to others and returns the genaology tree.
+
+
+    Parameters:
+    all_of_sums (arr): array of sum of all distances from a certain string
+    grandpaernt (int): grandparent distance value
+    all_distances (arr): array of all distances from each string to others
+
+    Returns:
+    3 lists : each list holds generations by level
+
+    """</span>
+
+    <span class="token comment">#filling first level with grandparent</span>
+    first_level<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> all_of_sums<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> grandpaernt <span class="token operator">==</span> i<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            first_level<span class="token punctuation">.</span>append<span class="token punctuation">(</span>i<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>first_level<span class="token punctuation">)</span>
+
+
+    <span class="token comment">#filling second level with parents that have strongest connections to grandparent</span>
+    second_level<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> j <span class="token keyword">in</span> all_distances<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> j<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> first_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">and</span> j<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span> <span class="token number">30</span><span class="token punctuation">:</span>
+            second_level<span class="token punctuation">.</span>append<span class="token punctuation">(</span>j<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>second_level<span class="token punctuation">)</span> 
+  
+
+    <span class="token comment">#filling third level with childer that have strongest connections to parents</span>
+    third_level<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> k <span class="token keyword">in</span> all_distances<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> second_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> k<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token comment">#making sure it doesn't reuse parents if they have strong connection</span>
+            <span class="token keyword">if</span> k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> second_level<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">or</span> k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> first_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                <span class="token keyword">pass</span>
+            <span class="token keyword">elif</span> k<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> second_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">and</span> k<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span> <span class="token number">30</span><span class="token punctuation">:</span>
+                third_level<span class="token punctuation">.</span>append<span class="token punctuation">(</span>k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> second_level<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> k<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            <span class="token comment">#making sure it doesn't reuse parents if they have strong connection</span>
+            <span class="token keyword">if</span> k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> second_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">or</span> k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> third_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">or</span>\
+            k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> third_level<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">or</span> \
+            k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> first_level<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                <span class="token keyword">pass</span>
+            <span class="token keyword">elif</span> k<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> second_level<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">and</span> k<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">&lt;</span> <span class="token number">30</span><span class="token punctuation">:</span>
+                third_level<span class="token punctuation">.</span>append<span class="token punctuation">(</span>k<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>third_level<span class="token punctuation">)</span>
+
+
+
+all_of_sums <span class="token operator">=</span> all_sums<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+grandparent <span class="token operator">=</span> grandparent_finder<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+all_distances <span class="token operator">=</span> distances<span class="token punctuation">(</span>strings<span class="token punctuation">)</span>
+
+
+tree_maker<span class="token punctuation">(</span>all_of_sums<span class="token punctuation">,</span> grandparent<span class="token punctuation">,</span> all_distances<span class="token punctuation">)</span>
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> random
+
+<span class="token keyword">def</span> <span class="token function">strings_maker</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">'''
+    This function makes a random n number of strings. We will fix them at size 100.
+    
+    Inputs
+    -------
+    n: int
+        Number of strings to be generated
+    
+    Returns
+    -------
+    Set_Strings: lst
+        List of n random strings
+    '''</span>
+    Random_Strings_Set <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        string <span class="token operator">=</span> <span class="token string">""</span>
+        chars <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"A"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"T"</span><span class="token punctuation">]</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            string <span class="token operator">+=</span> random<span class="token punctuation">.</span>choice<span class="token punctuation">(</span>chars<span class="token punctuation">)</span>
+        Random_Strings_Set<span class="token punctuation">.</span>append<span class="token punctuation">(</span>string<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> Random_Strings_Set
+
+strings_maker<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+<span class="token keyword">def</span> <span class="token function">length_matrix_experimental</span><span class="token punctuation">(</span>lenlcs_matrix<span class="token punctuation">,</span> Set_Strings<span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">'''
+    This function generates a matrix for the LCS lengths between 
+    each pair of a number of strings.
+    This version is modified for experiments.
+    
+    Inputs
+    ----------
+    Set_Strings: lst
+        A list for the strings to generate the matrix for
+    lenlcs_matrix: 2D array
+        A 2D array that holds the matrix structure with 7*7 cells
+    
+    Returns
+    ----------
+    matrix: 2D array
+        The function prints the filled matrix in a matrix shape
+    '''</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            row_string <span class="token operator">=</span> Set_Strings<span class="token punctuation">[</span>i<span class="token punctuation">]</span>
+            column_string <span class="token operator">=</span> Set_Strings<span class="token punctuation">[</span>j<span class="token punctuation">]</span>
+            temp_matrix <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>row_string<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> \
+                                    <span class="token builtin">len</span><span class="token punctuation">(</span>column_string<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword">for</span> x <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>row_string<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">for</span> y <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>column_string<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                    <span class="token keyword">if</span> row_string<span class="token punctuation">[</span>x <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> column_string<span class="token punctuation">[</span>y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+                        temp_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y<span class="token punctuation">]</span> <span class="token operator">=</span> temp_matrix<span class="token punctuation">[</span>x <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span>
+                    <span class="token keyword">else</span><span class="token punctuation">:</span>
+                        temp_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">max</span><span class="token punctuation">(</span>temp_matrix<span class="token punctuation">[</span>x <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> y<span class="token punctuation">]</span><span class="token punctuation">,</span>\
+                                                temp_matrix<span class="token punctuation">[</span>x<span class="token punctuation">,</span> y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            lenlcs_matrix<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token operator">=</span> temp_matrix<span class="token punctuation">[</span><span class="token builtin">len</span><span class="token punctuation">(</span>row_string<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">len</span><span class="token punctuation">(</span>column_string<span class="token punctuation">)</span><span class="token punctuation">]</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#greedy</span>
+<span class="token comment">#the plot code cells take some time to run </span>
+<span class="token keyword">import</span> time
+<span class="token keyword">import</span> matplotlib<span class="token punctuation">.</span>pyplot <span class="token keyword">as</span> plt
+
+<span class="token keyword">def</span> <span class="token function">experimental_greedy</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">'''
+    This function performs an experimental average runtime calculation
+    for the greedy algorithm
+    as we vary the input size which is the number of strings.
+
+    Inputs
+    --------
+    n: int
+        The maximum number of strings to test the algorithm for
+
+    Returns
+    ---------
+    None
+        This function produces a graph for the average runtime per input size
+    '''</span>
+    <span class="token comment"># Random_Strings_Set = strings_maker(n)</span>
+    average_runtimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># generate input size of length i</span>
+        Random_Strings_Set <span class="token operator">=</span> strings_maker<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        runtime <span class="token operator">=</span> <span class="token number">0</span>
+
+        <span class="token comment"># repeat each experiment 10 times</span>
+        <span class="token keyword">for</span> t <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            greedy_start_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            lenlcs_matrix <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span><span class="token punctuation">,</span>\
+                                      <span class="token builtin">len</span><span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            length_matrix_experimental<span class="token punctuation">(</span>lenlcs_matrix<span class="token punctuation">,</span> \
+                                       Random_Strings_Set<span class="token punctuation">,</span> i<span class="token punctuation">)</span>
+            greedy_end_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            runtime <span class="token operator">+=</span> <span class="token punctuation">(</span>greedy_end_time <span class="token operator">-</span> greedy_start_time<span class="token punctuation">)</span>
+
+        average_runtimes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>runtime <span class="token operator">/</span> <span class="token number">10</span><span class="token punctuation">)</span>
+
+    plt<span class="token punctuation">.</span>plot<span class="token punctuation">(</span><span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> average_runtimes<span class="token punctuation">,</span> color<span class="token operator">=</span><span class="token string">'green'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>title<span class="token punctuation">(</span><span class="token string">'Experimental time complexity for Greedy algorithm'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>xlabel<span class="token punctuation">(</span><span class="token string">'Input size as the number of strings'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>ylabel<span class="token punctuation">(</span><span class="token string">'Average runtime in seconds'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>show<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+experimental_greedy<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#dynamic</span>
+<span class="token keyword">def</span> <span class="token function">experimental_dynamic</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">'''
+    This function performs an experimental average runtime calculation for the 
+    Dynamic Programming algorithm
+    as we vary the input size which is the number of strings.
+
+    Inputs
+    --------
+    n: int
+        The maximum number of strings to test the algorithm for
+
+    Returns
+    ---------
+    None
+        This function produces a graph for the average runtime per input size
+    '''</span>
+    average_runtimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># generate input size of length i</span>
+        Random_Strings_Set <span class="token operator">=</span> strings_maker<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        runtime <span class="token operator">=</span> <span class="token number">0</span>
+
+        <span class="token comment"># repeat each experiment 10 times</span>
+        <span class="token keyword">for</span> t <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            dynamic_start_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            all_sums<span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span>
+            grandparent_finder<span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span>
+            dynamic_end_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            runtime <span class="token operator">+=</span> <span class="token punctuation">(</span>dynamic_end_time <span class="token operator">-</span> dynamic_start_time<span class="token punctuation">)</span>
+
+        average_runtimes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>runtime <span class="token operator">/</span> <span class="token number">10</span><span class="token punctuation">)</span>
+
+    plt<span class="token punctuation">.</span>plot<span class="token punctuation">(</span><span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> average_runtimes<span class="token punctuation">,</span> color<span class="token operator">=</span><span class="token string">'blue'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>title<span class="token punctuation">(</span><span class="token string">'Experimental time complexity for Dynamic programming algorithm'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>xlabel<span class="token punctuation">(</span><span class="token string">'Input size as the number of strings'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>ylabel<span class="token punctuation">(</span><span class="token string">'Average runtime in seconds'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>show<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+experimental_dynamic<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#this code cell takes time to run</span>
+<span class="token comment">#Comparison of greedy and dynamic programming runtime experiment</span>
+
+
+<span class="token keyword">import</span> time
+<span class="token keyword">import</span> matplotlib<span class="token punctuation">.</span>pyplot <span class="token keyword">as</span> plt
+<span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+<span class="token keyword">def</span> <span class="token function">compare_greedy_dynamic</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">'''
+    This function performs an experimental average runtime calculation for
+    the greedy and Dynamic Programming algorithm to compare
+    as we vary the input size which is the number of strings.
+
+    Inputs
+    --------
+    n: int
+        The maximum number of strings to test the algorithm for
+
+    Returns
+    ---------
+    None
+        This function produces a graph for the average runtime per input 
+        size for greedy and dynamic
+    '''</span>
+    <span class="token comment"># this section is for the greedy algorithm</span>
+    greedy_average_runtimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># generate input size of length i</span>
+        Random_Strings_Set <span class="token operator">=</span> strings_maker<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        runtime <span class="token operator">=</span> <span class="token number">0</span>
+
+        <span class="token comment"># repeat each experiment 5 times</span>
+        <span class="token keyword">for</span> t <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            greedy_start_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            len_lcs_matrix <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span><span class="token punctuation">,</span>\
+                                       <span class="token builtin">len</span><span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            length_matrix_experimental<span class="token punctuation">(</span>len_lcs_matrix<span class="token punctuation">,</span> Random_Strings_Set<span class="token punctuation">,</span> i<span class="token punctuation">)</span>
+            greedy_end_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            runtime <span class="token operator">+=</span> <span class="token punctuation">(</span>greedy_end_time <span class="token operator">-</span> greedy_start_time<span class="token punctuation">)</span>
+
+        greedy_average_runtimes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>runtime <span class="token operator">/</span> <span class="token number">5</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># this section is for the dynamic programming algorithm</span>
+    dynamic_average_runtimes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># generate input size of length i</span>
+        Random_Strings_Set <span class="token operator">=</span> strings_maker<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        runtime <span class="token operator">=</span> <span class="token number">0</span>
+
+        <span class="token comment"># repeat each experiment 5 times</span>
+        <span class="token keyword">for</span> t <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            dynamic_start_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            all_sums<span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span>
+            grandparent_finder<span class="token punctuation">(</span>Random_Strings_Set<span class="token punctuation">)</span>
+            dynamic_end_time <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            runtime <span class="token operator">+=</span> <span class="token punctuation">(</span>dynamic_end_time <span class="token operator">-</span> dynamic_start_time<span class="token punctuation">)</span>
+
+        dynamic_average_runtimes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>runtime <span class="token operator">/</span> <span class="token number">5</span><span class="token punctuation">)</span>
+
+    plot1 <span class="token operator">=</span> plt<span class="token punctuation">.</span>plot<span class="token punctuation">(</span><span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> greedy_average_runtimes<span class="token punctuation">,</span> color<span class="token operator">=</span><span class="token string">'green'</span><span class="token punctuation">,</span>\
+                     label<span class="token operator">=</span><span class="token string">'Greedy'</span><span class="token punctuation">)</span>
+    plot2 <span class="token operator">=</span> plt<span class="token punctuation">.</span>plot<span class="token punctuation">(</span><span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> dynamic_average_runtimes<span class="token punctuation">,</span> color<span class="token operator">=</span><span class="token string">'blue'</span><span class="token punctuation">,</span> \
+                     label<span class="token operator">=</span><span class="token string">'Dynamic'</span><span class="token punctuation">)</span>
+
+    plt<span class="token punctuation">.</span>title<span class="token punctuation">(</span>'Experimental time complexity <span class="token keyword">for</span> Greedy <span class="token operator">and</span> Dynamic programming \
+    algorithm'<span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>xlabel<span class="token punctuation">(</span><span class="token string">'Input size as the number of strings'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>ylabel<span class="token punctuation">(</span><span class="token string">'Average runtime in seconds'</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>legend<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    plt<span class="token punctuation">.</span>show<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+compare_greedy_dynamic<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment">#this code isn't generated by me.</span>
+<span class="token triple-quoted-string string">'''
+Slowikowski, K. (2020). A simple version of the Needleman-Wunsch
+algorithm in Python [Source Code].
+https://gist.github.com/slowkow/06c6dba9180d013dfd82bec217d22eb5
+'''</span>
+<span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+<span class="token keyword">def</span> <span class="token function">needleman_wunsch_alignment</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span> y<span class="token punctuation">,</span> match<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> mismatch<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> gap<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Aligns two strings, highlighting differences with dashes and
+    unmatching characters in the alignment.
+
+    Parameters:
+    x (str): The first input string.
+    y (str): The second input string.
+    match (int): The score for a match (default is 1).
+    mismatch (int): The score for a mismatch (default is 1).
+    gap (int): The score for a gap (default is 1).
+
+    Returns:
+    list: A list containing two strings representing the aligned sequences.
+    """</span>
+    nx <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+    ny <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>y<span class="token punctuation">)</span>
+
+    <span class="token comment"># Optimal score at each possible pair of characters.</span>
+    F <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span>nx <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> ny <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    F<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> np<span class="token punctuation">.</span>linspace<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span>nx <span class="token operator">*</span> gap<span class="token punctuation">,</span> nx <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span>
+    F<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">:</span><span class="token punctuation">]</span> <span class="token operator">=</span> np<span class="token punctuation">.</span>linspace<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span>ny <span class="token operator">*</span> gap<span class="token punctuation">,</span> ny <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Pointers to trace through an optimal alignment.</span>
+    P <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token punctuation">(</span>nx <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> ny <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    P<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">3</span>
+    P<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">:</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">4</span>
+
+    <span class="token comment"># Temporary scores.</span>
+    t <span class="token operator">=</span> np<span class="token punctuation">.</span>zeros<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>nx<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> j <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>ny<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> x<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">==</span> y<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">:</span>
+                t<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> F<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token operator">+</span> match
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                t<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> F<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token operator">-</span> mismatch
+            t<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> F<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">-</span> gap
+            t<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> F<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token operator">-</span> gap
+
+            tmax <span class="token operator">=</span> np<span class="token punctuation">.</span><span class="token builtin">max</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span>
+            F<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> tmax
+
+            <span class="token keyword">if</span> t<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> tmax<span class="token punctuation">:</span>
+                P<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+=</span> <span class="token number">2</span>
+            <span class="token keyword">if</span> t<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">==</span> tmax<span class="token punctuation">:</span>
+                P<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+=</span> <span class="token number">3</span>
+            <span class="token keyword">if</span> t<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">==</span> tmax<span class="token punctuation">:</span>
+                P<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+=</span> <span class="token number">4</span>
+
+    <span class="token comment"># Trace through an optimal alignment.</span>
+    i <span class="token operator">=</span> nx
+    j <span class="token operator">=</span> ny
+    rx <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    ry <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">while</span> i <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token operator">or</span> j <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> P<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token keyword">in</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            rx<span class="token punctuation">.</span>append<span class="token punctuation">(</span>x<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            ry<span class="token punctuation">.</span>append<span class="token punctuation">(</span>y<span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            i <span class="token operator">-=</span> <span class="token number">1</span>
+            j <span class="token operator">-=</span> <span class="token number">1</span>
+        <span class="token keyword">elif</span> P<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token keyword">in</span> <span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            rx<span class="token punctuation">.</span>append<span class="token punctuation">(</span>x<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            ry<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token string">'-'</span><span class="token punctuation">)</span>
+            i <span class="token operator">-=</span> <span class="token number">1</span>
+        <span class="token keyword">elif</span> P<span class="token punctuation">[</span>i<span class="token punctuation">,</span> j<span class="token punctuation">]</span> <span class="token keyword">in</span> <span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            rx<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token string">'-'</span><span class="token punctuation">)</span>
+            ry<span class="token punctuation">.</span>append<span class="token punctuation">(</span>y<span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            j <span class="token operator">-=</span> <span class="token number">1</span>
+
+    <span class="token comment"># Reverse the strings.</span>
+    rx <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>rx<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span>
+    ry <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>ry<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span>
+
+    aligned_sequences <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token builtin">str</span><span class="token punctuation">(</span>rx<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">str</span><span class="token punctuation">(</span>ry<span class="token punctuation">)</span><span class="token punctuation">]</span>
+    <span class="token keyword">return</span> aligned_sequences
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">generate_alignments</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Generates alignments between each parent and child pair.
+
+    Parameters:
+    parental_relationships (list): A list of tuples, where each tuple 
+    represents a parent-child relationship.
+    Each tuple contains two strings, representing the parent and child sequences.
+
+    Returns:
+    list: A list containing aligned sequences for each parent-child pair.
+          Each element of the list is a tuple with two strings representing the
+          aligned sequences.
+    """</span>
+    aligned_strings <span class="token operator">=</span> <span class="token punctuation">[</span>needleman_wunsch_alignment<span class="token punctuation">(</span>parent<span class="token punctuation">,</span> child<span class="token punctuation">)</span> <span class="token keyword">for</span> parent<span class="token punctuation">,</span> \
+                       child <span class="token keyword">in</span> parental_relationships<span class="token punctuation">]</span>
+    <span class="token keyword">return</span> aligned_strings
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">count_operations</span><span class="token punctuation">(</span>parent<span class="token punctuation">,</span> child<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Counts the number of each operation for each pair of parent and child.
+
+    Parameters:
+    parent (str): The parent sequence.
+    child (str): The child sequence.
+
+    Returns:
+    list: A list containing the count of deletions, insertions, and mutations.
+          The elements are in the order [deletions, insertions, mutations].
+    """</span>
+    deletions <span class="token operator">=</span> <span class="token number">0</span>
+    insertions <span class="token operator">=</span> <span class="token number">0</span>
+    mutations <span class="token operator">=</span> <span class="token number">0</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>parent<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># If parent has '-' and child has a character in the same place,</span>
+        it's an insertion
+        <span class="token keyword">if</span> parent<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'-'</span> <span class="token operator">and</span> child<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token string">'-'</span><span class="token punctuation">:</span>
+            insertions <span class="token operator">+=</span> <span class="token number">1</span>
+        <span class="token comment"># If parent has a character and child has '-' in the same place, </span>
+        it's a deletion
+        <span class="token keyword">elif</span> parent<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token string">'-'</span> <span class="token operator">and</span> child<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">'-'</span><span class="token punctuation">:</span>
+            deletions <span class="token operator">+=</span> <span class="token number">1</span>
+        <span class="token comment"># If parent has a character different than the child, it's a mutation</span>
+        <span class="token keyword">elif</span> parent<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token string">'-'</span> <span class="token operator">and</span> child<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token string">'-'</span> <span class="token operator">and</span> parent<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> child<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">:</span>
+            mutations <span class="token operator">+=</span> <span class="token number">1</span>
+
+    operations <span class="token operator">=</span> <span class="token punctuation">[</span>deletions<span class="token punctuation">,</span> insertions<span class="token punctuation">,</span> mutations<span class="token punctuation">]</span>
+
+    <span class="token keyword">return</span> operations
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">count_operations_for_relationships</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Gets the number of each operation for all pairs of parents and children.
+
+    Parameters:
+    parental_relationships (list): A list of lists where each sublist 
+    contains the parent and child strings.
+
+    Returns:
+    list: A list containing the number of operations 
+    (deletions, insertions, mutations) for each pair.
+    """</span>
+    <span class="token comment"># Generate alignments for all parent-child pairs</span>
+    parent_child_alignments <span class="token operator">=</span> generate_alignments<span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+    
+    <span class="token comment"># Initialize a list to store operation counts for each pair</span>
+    operation_counts <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token comment"># Iterate through each alignment and count operations</span>
+    <span class="token keyword">for</span> alignment <span class="token keyword">in</span> parent_child_alignments<span class="token punctuation">:</span>
+        operation_counts<span class="token punctuation">.</span>append<span class="token punctuation">(</span>count_operations<span class="token punctuation">(</span>alignment<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> alignment<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> operation_counts
+
+
+<span class="token comment"># Example usage</span>
+parental_relationships <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>b<span class="token punctuation">,</span> c<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>b<span class="token punctuation">,</span> f<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>c<span class="token punctuation">,</span> a<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>c<span class="token punctuation">,</span> e<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>f<span class="token punctuation">,</span> d<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>f<span class="token punctuation">,</span> g<span class="token punctuation">]</span><span class="token punctuation">]</span>
+count_operations_for_relationships<span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">def</span> <span class="token function">print_modification_probabilities</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Prints the probability of deletion, insertion, and mutation 
+    for each character 
+    in the parent string to form the child string, and the average 
+    across all relationships.
+
+    Parameters:
+    parental_relationships (list): A list of lists where each sublist 
+    contains the parent and child strings.
+    """</span>
+    <span class="token comment"># Count operations for all parent-child pairs</span>
+    operation_counts <span class="token operator">=</span> count_operations_for_relationships<span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+
+    <span class="token comment"># Extract parents from the relationships</span>
+    parents <span class="token operator">=</span> <span class="token punctuation">[</span>relationship<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token keyword">for</span> relationship <span class="token keyword">in</span> parental_relationships<span class="token punctuation">]</span>
+
+    p_order <span class="token operator">=</span> <span class="token number">0</span>
+    total_deletion_probability <span class="token operator">=</span> <span class="token number">0</span>
+    total_insertion_probability <span class="token operator">=</span> <span class="token number">0</span>
+    total_mutations_probability <span class="token operator">=</span> <span class="token number">0</span>
+
+    <span class="token comment"># Iterate through each pair's operation count</span>
+    <span class="token keyword">for</span> count <span class="token keyword">in</span> operation_counts<span class="token punctuation">:</span>
+        <span class="token comment"># Calculate final probabilities for each relationship</span>
+        final_deletion_probability <span class="token operator">=</span> count<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">/</span> <span class="token builtin">len</span><span class="token punctuation">(</span>parents<span class="token punctuation">[</span>p_order<span class="token punctuation">]</span><span class="token punctuation">)</span>
+        final_insertion_probability <span class="token operator">=</span> count<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">/</span> <span class="token builtin">len</span><span class="token punctuation">(</span>parents<span class="token punctuation">[</span>p_order<span class="token punctuation">]</span><span class="token punctuation">)</span>
+        final_mutations_probability <span class="token operator">=</span> count<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">/</span> <span class="token builtin">len</span><span class="token punctuation">(</span>parents<span class="token punctuation">[</span>p_order<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># Accumulate probabilities for averaging</span>
+        total_deletion_probability <span class="token operator">+=</span> final_deletion_probability
+        total_insertion_probability <span class="token operator">+=</span> final_insertion_probability
+        total_mutations_probability <span class="token operator">+=</span> final_mutations_probability
+
+        <span class="token comment"># Print the estimation for each parental-child pair</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Estimation for Parent-Child Pair {p_order + 1}:"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Deletion Probability: {final_deletion_probability}"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Insertion Probability: {final_insertion_probability}"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Mutation Probability: {final_mutations_probability}\n"</span><span class="token punctuation">)</span>
+
+        p_order <span class="token operator">+=</span> <span class="token number">1</span>
+
+    <span class="token comment"># Calculate and print the average estimation across all parental-child pairs</span>
+    avg_deletion_probability <span class="token operator">=</span> total_deletion_probability <span class="token operator">/</span> <span class="token builtin">len</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+    avg_insertion_probability <span class="token operator">=</span> total_insertion_probability <span class="token operator">/</span>\
+    <span class="token builtin">len</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+    avg_mutations_probability <span class="token operator">=</span> total_mutations_probability <span class="token operator">/</span>\
+    <span class="token builtin">len</span><span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Average Estimation Across All Parental-Child Pairs:"</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Average Deletion Probability: {avg_deletion_probability}"</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Average Insertion Probability: {avg_insertion_probability}"</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Average Mutation Probability: {avg_mutations_probability}"</span><span class="token punctuation">)</span>
+
+
+<span class="token comment"># Example usage</span>
+parental_relationships <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>b<span class="token punctuation">,</span> c<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>b<span class="token punctuation">,</span> f<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>c<span class="token punctuation">,</span> a<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>c<span class="token punctuation">,</span> e<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>f<span class="token punctuation">,</span> d<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>f<span class="token punctuation">,</span> g<span class="token punctuation">]</span><span class="token punctuation">]</span>
+print_modification_probabilities<span class="token punctuation">(</span>parental_relationships<span class="token punctuation">)</span>
+
+</code></pre>
+</div>
+</body>
+
+</html>
